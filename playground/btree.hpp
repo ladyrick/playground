@@ -11,8 +11,9 @@ struct TreeNode {
     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
 };
 
-namespace { //anonymous namespace
-void fillMap(std::vector<TreeNode *> &nodemap, TreeNode *root, int index) {
+namespace { // anonymous namespace
+void fillMap(std::vector<const TreeNode *> &nodemap, const TreeNode *root,
+             int index) {
     if (!root) {
         return;
     }
@@ -22,7 +23,8 @@ void fillMap(std::vector<TreeNode *> &nodemap, TreeNode *root, int index) {
 }
 
 std::ostream &putsInWidth(char c, int width) {
-    return std::cout << std::setw(width) << std::setfill(c) << c << std::setfill(' ');
+    return std::cout << std::setw(width) << std::setfill(c) << c
+                     << std::setfill(' ');
 }
 
 void printLeftToParentBranchTop(int w) {
@@ -46,7 +48,7 @@ void printRightToParentBranchBottom(int w) {
     putsInWidth(' ', w + 1);
 }
 
-void printNode(TreeNode *node, int w) {
+void printNode(const TreeNode *node, int w) {
     std::cout << std::setw(w) << node->val;
     return;
 }
@@ -64,16 +66,16 @@ void trimRightTrailingSpaces(std::string &input) {
 }
 } // namespace
 
-std::string treeNodeToString(TreeNode *root) {
+std::string treeNodeToString(const TreeNode *root) {
     if (root == nullptr) {
         return "[]";
     }
 
     std::string output = "";
-    std::queue<TreeNode *> q;
+    std::queue<const TreeNode *> q;
     q.push(root);
     while (!q.empty()) {
-        TreeNode *node = q.front();
+        const TreeNode *node = q.front();
         q.pop();
 
         if (node == nullptr) {
@@ -140,27 +142,40 @@ int maxDepth(const TreeNode *root) {
     return 1 + std::max(maxDepth(root->left), maxDepth(root->right));
 }
 
-void printTreeV(TreeNode *node, std::string prefix = "", bool isLeft = true) {
-    if (node == nullptr) {
+bool isSame(const TreeNode *root1, const TreeNode *root2) {
+    if (!root1 || !root2) {
+        return root1 == root2;
+    }
+    return root1->val == root2->val && isSame(root1->left, root2->left) &&
+           isSame(root1->right, root2->right);
+}
+
+void printTreeV(const TreeNode *root, std::string prefix = "",
+                bool isLeft = true) {
+    if (!root) {
         std::cout << "Empty tree";
         return;
     }
 
-    if (node->right) {
-        printTreeV(node->right, prefix + (isLeft ? "│   " : "    "),
-                        false);
+    if (root->right) {
+        printTreeV(root->right, prefix + (isLeft ? "│   " : "    "), false);
     }
 
-    std::cout << prefix + (isLeft ? "└── " : "┌── ") + std::to_string(node->val) + "\n";
+    std::cout << prefix + (isLeft ? "└── " : "┌── ") +
+                     std::to_string(root->val) + "\n";
 
-    if (node->left) {
-        printTreeV(node->left, prefix + (isLeft ? "    " : "│   "), true);
+    if (root->left) {
+        printTreeV(root->left, prefix + (isLeft ? "    " : "│   "), true);
     }
 }
 
-void printTreeH(TreeNode *root) {
+void printTreeH(const TreeNode *root) {
+    if (!root) {
+        std::cout << "Empty tree";
+        return;
+    }
     int depth = maxDepth(root);
-    std::vector<TreeNode *> nodemap((1 << depth) - 1, nullptr);
+    std::vector<const TreeNode *> nodemap((1 << depth) - 1, nullptr);
     fillMap(nodemap, root, 0);
     for (int j = 0, index = 0; j < depth; j++) {
         int w = 1 << (depth - j + 1);
