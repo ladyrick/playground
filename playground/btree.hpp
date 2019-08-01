@@ -1,14 +1,16 @@
 #include "common.hpp"
 
-#ifndef __LEETCODE_TEMPLATE_BTREE__
-#define __LEETCODE_TEMPLATE_BTREE__
+#ifndef __PLAYGROUND_BTREE__
+#define __PLAYGROUND_BTREE__
 
+namespace playground {
 namespace btree {
+using namespace playground;
 struct TreeNode {
     int val;
     TreeNode *left;
     TreeNode *right;
-    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
 };
 
 namespace { // anonymous namespace
@@ -247,5 +249,6 @@ TreeNode *generateRandomTree(int num_nodes = 0) {
     return root;
 }
 } // namespace btree
+} // namespace playground
 
 #endif
