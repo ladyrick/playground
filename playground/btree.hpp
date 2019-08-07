@@ -5,8 +5,8 @@
 
 namespace playground {
 namespace btree {
-using namespace playground;
-struct TreeNode {
+using playground::input;
+struct TreeNode : public __::AutoFree {
     int val;
     TreeNode *left;
     TreeNode *right;
