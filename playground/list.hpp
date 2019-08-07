@@ -11,7 +11,6 @@ struct ListNode : public playground::__::AutoFree {
     int val;
     ListNode *next;
     ListNode(int x) : val(x), next(nullptr) {}
-    ~ListNode() { std::cout << "free " << val << std::endl; }
 };
 
 namespace __ {
@@ -43,6 +42,17 @@ std::vector<int> stringToIntegerVector(std::string input) {
     return output;
 }
 } // namespace __
+
+bool isSame(ListNode *list1, ListNode *list2) {
+    while (list1 && list2) {
+        if (list1->val != list2->val) {
+            return false;
+        }
+        list1 = list1->next;
+        list2 = list2->next;
+    }
+    return list1 == list2;
+}
 
 ListNode *stringToListNode(std::string input) {
     // Generate list from the input
