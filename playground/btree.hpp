@@ -6,14 +6,14 @@
 namespace playground {
 namespace btree {
 using playground::input;
-struct TreeNode : public __::AutoFree {
+struct TreeNode : public playground::__::AutoFree {
     int val;
     TreeNode *left;
     TreeNode *right;
     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
 };
 
-namespace { // anonymous namespace
+namespace __ {
 void fillMap(std::vector<const TreeNode *> &nodemap, const TreeNode *root,
              int index) {
     if (!root) {
@@ -56,17 +56,17 @@ void printNode(const TreeNode *node, int w) {
 }
 
 void trimLeftTrailingSpaces(std::string &input) {
-    input.erase(input.begin(), find_if(input.begin(), input.end(),
-                                       [](int ch) { return !isspace(ch); }));
+    input.erase(input.begin(), std::find_if(input.begin(), input.end(),
+                                       [](int ch) { return !std::isspace(ch); }));
 }
 
 void trimRightTrailingSpaces(std::string &input) {
-    input.erase(find_if(input.rbegin(), input.rend(),
-                        [](int ch) { return !isspace(ch); })
+    input.erase(std::find_if(input.rbegin(), input.rend(),
+                        [](int ch) { return !std::isspace(ch); })
                     .base(),
                 input.end());
 }
-} // namespace
+} // namespace __
 
 std::string treeNodeToString(const TreeNode *root) {
     if (root == nullptr) {
@@ -93,8 +93,8 @@ std::string treeNodeToString(const TreeNode *root) {
 }
 
 TreeNode *stringToTreeNode(std::string input) {
-    trimLeftTrailingSpaces(input);
-    trimRightTrailingSpaces(input);
+    __::trimLeftTrailingSpaces(input);
+    __::trimRightTrailingSpaces(input);
     input = input.substr(1, input.length() - 2);
     if (!input.size()) {
         return nullptr;
@@ -104,7 +104,7 @@ TreeNode *stringToTreeNode(std::string input) {
     std::stringstream ss;
     ss.str(input);
 
-    getline(ss, item, ',');
+    std::getline(ss, item, ',');
     TreeNode *root = new TreeNode(stoi(item));
     std::queue<TreeNode *> nodeQueue;
     nodeQueue.push(root);
@@ -113,22 +113,22 @@ TreeNode *stringToTreeNode(std::string input) {
         TreeNode *node = nodeQueue.front();
         nodeQueue.pop();
 
-        if (!getline(ss, item, ',')) {
+        if (!std::getline(ss, item, ',')) {
             break;
         }
 
-        trimLeftTrailingSpaces(item);
+        __::trimLeftTrailingSpaces(item);
         if (item != "null") {
             int leftNumber = stoi(item);
             node->left = new TreeNode(leftNumber);
             nodeQueue.push(node->left);
         }
 
-        if (!getline(ss, item, ',')) {
+        if (!std::getline(ss, item, ',')) {
             break;
         }
 
-        trimLeftTrailingSpaces(item);
+        __::trimLeftTrailingSpaces(item);
         if (item != "null") {
             int rightNumber = stoi(item);
             node->right = new TreeNode(rightNumber);
@@ -178,7 +178,7 @@ void printTreeH(const TreeNode *root) {
     }
     int depth = maxDepth(root);
     std::vector<const TreeNode *> nodemap((1 << depth) - 1, nullptr);
-    fillMap(nodemap, root, 0);
+    __::fillMap(nodemap, root, 0);
     for (int j = 0, index = 0; j < depth; j++) {
         int w = 1 << (depth - j + 1);
         if (j > 0) {
@@ -186,12 +186,12 @@ void printTreeH(const TreeNode *root) {
             for (int i = 0; i < 1 << j; i++) {
                 if (nodemap[index + i]) {
                     if (i % 2 == 0) {
-                        printLeftToParentBranchTop(w);
+                        __::printLeftToParentBranchTop(w);
                     } else {
-                        printRightToParentBranchTop(w);
+                        __::printRightToParentBranchTop(w);
                     }
                 } else {
-                    putsInWidth(' ', w * 2);
+                    __::putsInWidth(' ', w * 2);
                 }
             }
             std::cout << std::endl;
@@ -199,12 +199,12 @@ void printTreeH(const TreeNode *root) {
             for (int i = 0; i < 1 << j; i++) {
                 if (nodemap[index + i]) {
                     if (i % 2 == 0) {
-                        printLeftToParentBranchBottom(w);
+                        __::printLeftToParentBranchBottom(w);
                     } else {
-                        printRightToParentBranchBottom(w);
+                        __::printRightToParentBranchBottom(w);
                     }
                 } else {
-                    putsInWidth(' ', w * 2);
+                    __::putsInWidth(' ', w * 2);
                 }
             }
             std::cout << std::endl;
@@ -212,10 +212,10 @@ void printTreeH(const TreeNode *root) {
         // Node content
         for (int i = 0; i < 1 << j; i++, index++)
             if (nodemap[index]) {
-                printNode(nodemap[index], w);
-                putsInWidth(' ', w * 2 - w);
+                __::printNode(nodemap[index], w);
+                __::putsInWidth(' ', w * 2 - w);
             } else {
-                putsInWidth(' ', w * 2);
+                __::putsInWidth(' ', w * 2);
             }
         std::cout << std::endl;
     }
