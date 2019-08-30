@@ -4,7 +4,6 @@
 #define __PLAYGROUND_SLIST__
 
 namespace playground {
-namespace list {
 using playground::input;
 
 struct ListNode : public playground::__::AutoFree {
@@ -106,7 +105,6 @@ ListNode *generateRandomList(int num_nodes = 0) {
     }
     return head;
 }
-} // namespace list
 } // namespace playground
 
 #endif

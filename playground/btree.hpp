@@ -4,7 +4,6 @@
 #define __PLAYGROUND_BTREE__
 
 namespace playground {
-namespace btree {
 using playground::input;
 struct TreeNode : public playground::__::AutoFree {
     int val;
@@ -248,7 +247,6 @@ TreeNode *generateRandomTree(int num_nodes = 0) {
     }
     return root;
 }
-} // namespace btree
 } // namespace playground
 
 #endif

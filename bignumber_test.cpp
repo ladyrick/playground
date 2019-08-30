@@ -1,13 +1,11 @@
 #include "playground/bignumber.hpp"
 using namespace std;
+using namespace playground;
 
 int main() {
-    BigNumber a = 123457;
-    BigNumber b = 123456;
-    BigNumber c = a - b;
-    cout << a << " - " << b << " = " << c << endl;
-    for (auto i:c){
-        cout << int(i) << ' ';
+    BigNumber result = 1;
+    for (int i = 1; i <= 100; i++) {
+        result = result * i;
+        cout << result << endl;
     }
-    cout << endl;
 }

@@ -1,6 +1,6 @@
 #include "playground/btree.hpp"
 
-using namespace playground::btree;
+using namespace playground;
 using namespace std;
 
 void PreOrderWithoutRecursive(const TreeNode *root) {

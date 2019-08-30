@@ -1,13 +1,21 @@
 #include "common.hpp"
 
-typedef uint8_t base_t;
-typedef int16_t double_base_t;
-class BigNumber : public std::vector<base_t> {
+#ifndef __PLAYGROUND_BIGNUMBER__
+#define __PLAYGROUND_BIGNUMBER__
+
+namespace playground {
+using playground::input;
+
+class BigNumber {
   private:
-    static const base_t BASE = 100;
+    typedef uint8_t base_t;
+    typedef int16_t double_base_t;
     typedef std::vector<base_t> digs_t;
 
     bool isneg;
+    digs_t digs;
+
+    static const base_t BASE = 100;
     static int digs_comp(const digs_t &a, const digs_t &b) {
         if (a.size() < b.size())
             return -1;
@@ -21,31 +29,27 @@ class BigNumber : public std::vector<base_t> {
         }
         return 0;
     }
-    static void digs_add(const digs_t &a, const digs_t &b, digs_t &r) {
-        r = a.size() > b.size() ? a : b;
-        const digs_t &lessone = a.size() > b.size() ? b : a;
-        int carry = 0;
-        size_t i = 0;
-        while (i < lessone.size()) {
-            r[i] += lessone[i] + carry;
-            carry = 0;
-            if (r[i] >= BASE) {
-                r[i] -= BASE;
-                carry = 1;
-            }
-            i++;
+    static void digs_add_assign(digs_t &a, const digs_t &b, int pos_a = 0,
+                                int pos_b = 0) {
+        if (b.size() - pos_b > a.size() - pos_a) {
+            a.reserve((b.size() - pos_b + pos_a + 1));
         }
-        while (carry) {
-            if (r.size() == i) {
-                r.push_back(0);
+        int size_b = b.size();
+        int carry = 0;
+        while (pos_b < size_b || carry) {
+            int b_pos_b = pos_b < size_b ? b[pos_b] : 0;
+            if (pos_a == a.size()) {
+                a.push_back(b_pos_b + carry);
+            } else {
+                a[pos_a] += b_pos_b + carry;
             }
-            r[i] += carry;
             carry = 0;
-            if (r[i] >= BASE) {
-                r[i] -= BASE;
+            if (a[pos_a] >= BASE) {
+                a[pos_a] -= BASE;
                 carry = 1;
             }
-            i++;
+            pos_a++;
+            pos_b++;
         }
     }
     static bool digs_minus(const digs_t &a, const digs_t &b, digs_t &r) {
@@ -84,33 +88,50 @@ class BigNumber : public std::vector<base_t> {
         return comp < 0;
     }
 
-    static bool digs_multi(const digs_t &a, const digs_t &b, digs_t &r) {
-        BigNumber result;
-        BigNumber carry;
-        const digs_t &bigone = a.size() > b.size() ? a : b;
-        const digs_t &lessone = a.size() > b.size() ? b : a;
-        int step = 1;
-        while (step <= bigone.size()) {
-            for (int i = 0; i < step; i++) {
+    static void digs_multi(const digs_t &a, const digs_t &b, digs_t &r) {
+        const digs_t &big = a.size() > b.size() ? a : b;
+        const digs_t &sml = a.size() > b.size() ? b : a;
+        int step = 0;
+        while (step < big.size()) {
+            for (int i = step; i >= 0 && step - i < sml.size(); i--) {
+                double_base_t tmp =
+                    (double_base_t)big[i] * (double_base_t)sml[step - i];
+                digs_t tmp_digs = {base_t(tmp % BASE), base_t(tmp / BASE)};
+                if (tmp_digs.back() == 0)
+                    tmp_digs.pop_back();
+                digs_add_assign(r, tmp_digs, step);
             }
+            step++;
+        }
+        int step2 = 0;
+        while (step2 < sml.size() - 1) {
+            for (int i = 1; i < sml.size() - step2; i++) {
+                double_base_t tmp = (double_base_t)big[big.size() - i] *
+                                    (double_base_t)sml[i + step2];
+                digs_t tmp_digs = {base_t(tmp % BASE), base_t(tmp / BASE)};
+                if (tmp_digs.back() == 0)
+                    tmp_digs.pop_back();
+                digs_add_assign(r, tmp_digs, step + step2);
+            }
+            step2++;
         }
     }
 
   public:
     BigNumber(int64_t value = 0) : isneg(value < 0) {
         if (value == 0) {
-            push_back(0);
+            digs.push_back(0);
             return;
         }
         if (isneg) {
             value = -value;
         }
         while (value) {
-            push_back(value % BASE);
+            digs.push_back(value % BASE);
             value /= BASE;
         }
     }
-    BigNumber(const BigNumber &bg) : digs_t(bg) { isneg = bg.isneg; }
+    BigNumber(const BigNumber &bg) : digs(bg.digs) { isneg = bg.isneg; }
     std::string to_string() const {
         int width = 0;
         int base = BASE - 1;
@@ -125,20 +146,21 @@ class BigNumber : public std::vector<base_t> {
         bool ischar = std::is_same<char, base_t>::value ||
                       std::is_same<signed char, base_t>::value ||
                       std::is_same<unsigned char, base_t>::value;
-        oss << (ischar ? int(back()) : back());
-        for (int i = size() - 2; i >= 0; i--) {
+        oss << (ischar ? int(digs.back()) : digs.back());
+        for (int i = digs.size() - 2; i >= 0; i--) {
             oss << std::setw(width) << std::setfill('0')
-                << (ischar ? int(operator[](i)) : operator[](i));
+                << (ischar ? int(digs[i]) : digs[i]);
         }
         return oss.str();
     }
     BigNumber operator+(const BigNumber &bg) {
         BigNumber result;
         if (isneg == bg.isneg) {
-            digs_add(*this, bg, result);
+            result = *this;
+            digs_add_assign(result.digs, bg.digs);
             result.isneg = isneg;
         } else {
-            bool rev = digs_minus(*this, bg, result);
+            bool rev = digs_minus(digs, bg.digs, result.digs);
             result.isneg = rev ^ isneg;
         }
         return result;
@@ -146,10 +168,11 @@ class BigNumber : public std::vector<base_t> {
     BigNumber operator-(const BigNumber &bg) {
         BigNumber result;
         if (isneg == bg.isneg) {
-            auto rev = digs_minus(*this, bg, result);
+            auto rev = digs_minus(digs, bg.digs, result.digs);
             result.isneg = rev ^ isneg;
         } else {
-            digs_add(*this, bg, result);
+            result = *this;
+            digs_add_assign(result.digs, bg.digs);
             result.isneg = isneg;
         }
         return result;
@@ -157,7 +180,7 @@ class BigNumber : public std::vector<base_t> {
     BigNumber operator*(const BigNumber &bg) {
         BigNumber result;
         result.isneg = isneg ^ bg.isneg;
-        digs_multi(*this, bg, result);
+        digs_multi(digs, bg.digs, result.digs);
         return result;
     }
 };
@@ -166,3 +189,6 @@ std::ostream &operator<<(std::ostream &os, const BigNumber &bg) {
     os << bg.to_string();
     return os;
 }
+} // namespace playground
+
+#endif

@@ -1,6 +1,6 @@
 #include "playground/list.hpp"
 
-using namespace playground::list;
+using namespace playground;
 using namespace std;
 
 int main() {
