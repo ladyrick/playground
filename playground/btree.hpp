@@ -4,7 +4,7 @@
 #define __PLAYGROUND_BTREE__
 
 namespace playground {
-using playground::input;
+
 struct TreeNode : public playground::__::AutoFree {
     int val;
     TreeNode *left;

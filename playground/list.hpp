@@ -4,7 +4,6 @@
 #define __PLAYGROUND_SLIST__
 
 namespace playground {
-using playground::input;
 
 struct ListNode : public playground::__::AutoFree {
     int val;

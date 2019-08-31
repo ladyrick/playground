@@ -1,21 +1,21 @@
 #include "common.hpp"
 
-#ifndef __PLAYGROUND_BIGNUMBER__
-#define __PLAYGROUND_BIGNUMBER__
+#ifndef __PLAYGROUND_BIGINT__
+#define __PLAYGROUND_BIGINT__
 
 namespace playground {
-using playground::input;
 
-class BigNumber {
+class BigInt {
   private:
-    typedef uint8_t base_t;
-    typedef int16_t double_base_t;
+    typedef int32_t base_t;
+    typedef int64_t double_base_t;
     typedef std::vector<base_t> digs_t;
 
     bool isneg;
     digs_t digs;
 
-    static const base_t BASE = 100;
+    static const base_t BASE = 1000000000;
+    static const size_t BASE_WIDTH = 9;
     static int digs_comp(const digs_t &a, const digs_t &b) {
         if (a.size() < b.size())
             return -1;
@@ -53,7 +53,7 @@ class BigNumber {
         }
     }
     static bool digs_minus(const digs_t &a, const digs_t &b, digs_t &r) {
-        auto comp = digs_comp(a, b);
+        int comp = digs_comp(a, b);
         if (comp == 0) {
             r = {0};
             return false;
@@ -118,7 +118,7 @@ class BigNumber {
     }
 
   public:
-    BigNumber(int64_t value = 0) : isneg(value < 0) {
+    BigInt(int64_t value = 0) : isneg(value < 0) {
         if (value == 0) {
             digs.push_back(0);
             return;
@@ -131,30 +131,24 @@ class BigNumber {
             value /= BASE;
         }
     }
-    BigNumber(const BigNumber &bg) : digs(bg.digs) { isneg = bg.isneg; }
+    BigInt(const BigInt &bg) : digs(bg.digs) { isneg = bg.isneg; }
     std::string to_string() const {
-        int width = 0;
-        int base = BASE - 1;
-        while (base) {
-            width += 1;
-            base /= 10;
-        }
         std::stringstream oss;
         if (isneg) {
             oss << '-';
         }
-        bool ischar = std::is_same<char, base_t>::value ||
-                      std::is_same<signed char, base_t>::value ||
-                      std::is_same<unsigned char, base_t>::value;
+        const bool ischar = std::is_same<char, base_t>::value ||
+                            std::is_same<signed char, base_t>::value ||
+                            std::is_same<unsigned char, base_t>::value;
         oss << (ischar ? int(digs.back()) : digs.back());
         for (int i = digs.size() - 2; i >= 0; i--) {
-            oss << std::setw(width) << std::setfill('0')
+            oss << std::setw(BASE_WIDTH) << std::setfill('0')
                 << (ischar ? int(digs[i]) : digs[i]);
         }
         return oss.str();
     }
-    BigNumber operator+(const BigNumber &bg) {
-        BigNumber result;
+    BigInt operator+(const BigInt &bg) {
+        BigInt result;
         if (isneg == bg.isneg) {
             result = *this;
             digs_add_assign(result.digs, bg.digs);
@@ -165,10 +159,10 @@ class BigNumber {
         }
         return result;
     }
-    BigNumber operator-(const BigNumber &bg) {
-        BigNumber result;
+    BigInt operator-(const BigInt &bg) {
+        BigInt result;
         if (isneg == bg.isneg) {
-            auto rev = digs_minus(digs, bg.digs, result.digs);
+            bool rev = digs_minus(digs, bg.digs, result.digs);
             result.isneg = rev ^ isneg;
         } else {
             result = *this;
@@ -177,15 +171,71 @@ class BigNumber {
         }
         return result;
     }
-    BigNumber operator*(const BigNumber &bg) {
-        BigNumber result;
+    BigInt operator*(const BigInt &bg) {
+        BigInt result;
         result.isneg = isneg ^ bg.isneg;
         digs_multi(digs, bg.digs, result.digs);
         return result;
     }
+    BigInt operator-() {
+        BigInt result = *this;
+        result.isneg = !isneg;
+        return result;
+    }
+    BigInt operator+() { return *this; }
+    void operator+=(const BigInt &bg) {
+        if (isneg == bg.isneg) {
+            digs_add_assign(digs, bg.digs);
+        } else {
+            digs_t tmp;
+            bool rev = digs_minus(digs, bg.digs, tmp);
+            digs = tmp;
+            isneg ^= rev;
+        }
+    }
+    void operator-=(const BigInt &bg) {
+        if (isneg == bg.isneg) {
+            digs_t tmp;
+            bool rev = digs_minus(digs, bg.digs, tmp);
+            digs = tmp;
+            isneg ^= rev;
+        } else {
+            digs_add_assign(digs, bg.digs);
+        }
+    }
+    void operator*=(const BigInt &bg) {
+        isneg ^= bg.isneg;
+        digs_t tmp;
+        digs_multi(digs, bg.digs, tmp);
+        digs = tmp;
+    }
+    BigInt operator++() {
+        digs_add_assign(digs, {1});
+        return *this;
+    }
+    BigInt operator++(int) {
+        BigInt tmp = *this;
+        digs_add_assign(digs, {1});
+        return tmp;
+    }
+    BigInt operator--() {
+        operator-=(1);
+        return *this;
+    }
+    BigInt operator--(int) {
+        BigInt tmp = *this;
+        operator-=(1);
+        return tmp;
+    }
+    BigInt operator>(BigInt bg) { return digs_comp(digs, bg.digs) > 0; }
+    BigInt operator==(BigInt bg) { return digs_comp(digs, bg.digs) == 0; }
+    BigInt operator<(BigInt bg) { return digs_comp(digs, bg.digs) < 0; }
+    BigInt operator>=(BigInt bg) { return digs_comp(digs, bg.digs) >= 0; }
+    BigInt operator<=(BigInt bg) { return digs_comp(digs, bg.digs) <= 0; }
+    BigInt operator!=(BigInt bg) { return digs_comp(digs, bg.digs) != 0; }
 };
 
-std::ostream &operator<<(std::ostream &os, const BigNumber &bg) {
+std::ostream &operator<<(std::ostream &os, const BigInt &bg) {
     os << bg.to_string();
     return os;
 }
