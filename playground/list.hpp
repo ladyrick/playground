@@ -1,7 +1,7 @@
 #include "common.hpp"
 
-#ifndef __PLAYGROUND_SLIST__
-#define __PLAYGROUND_SLIST__
+#ifndef __PLAYGROUND_LIST__
+#define __PLAYGROUND_LIST__
 
 namespace playground {
 
