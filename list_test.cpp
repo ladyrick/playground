@@ -5,5 +5,5 @@ using namespace std;
 
 int main() {
     ListNode *head = generateRandomList();
-    printList(head);  
+    printList(head);
 }
