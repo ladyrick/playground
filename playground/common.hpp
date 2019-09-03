@@ -16,6 +16,7 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
+#include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -97,7 +98,6 @@ std::ostream &display(const ForwardIterator begin, const ForwardIterator end,
     }
     return os;
 }
-
 } // namespace playground
 
 #endif
