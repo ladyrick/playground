@@ -1,5 +1,7 @@
 #include <algorithm>
+#include <chrono>
 #include <deque>
+#include <forward_list>
 #include <fstream>
 #include <functional>
 #include <iomanip>
@@ -24,6 +26,18 @@
 
 #ifndef __PLAYGROUND_COMMON__
 #define __PLAYGROUND_COMMON__
+
+#define __EXEC_HELPER2__(expression, counter)                                  \
+    namespace __exec_helper_namespace_##counter {                              \
+        struct __exec_helper_class__ {                                         \
+            __exec_helper_class__() { expression; }                            \
+        } __executor__;                                                        \
+    }
+#define __EXEC_HELPER1__(expression, counter)                                  \
+    __EXEC_HELPER2__(expression, counter)
+
+// used to exec expression before entry main().
+#define EXEC(expression) __EXEC_HELPER1__(expression, __COUNTER__)
 
 namespace playground {
 
@@ -69,35 +83,51 @@ std::vector<std::string> split(const std::string &str,
     return result;
 }
 
-template <class Container>
-std::ostream &display(const Container &container,
-                      std::ostream &os = std::cout) {
-    bool first = true;
-    for (const auto &e : container) {
-        if (first) {
-            os << e;
-            first = false;
-        } else {
-            os << ' ' << e;
-        }
+#define __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                           \
+    bool first = true;                                                         \
+    for (const auto &elem : cont) {                                            \
+        if (first) {                                                           \
+            os << '[' << elem;                                                 \
+            first = false;                                                     \
+        } else {                                                               \
+            os << ',' << elem;                                                 \
+        }                                                                      \
+    }                                                                          \
+    os << ']';                                                                 \
+    return os;
+
+#define __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(Cont)                            \
+    template <class T>                                                         \
+    std::ostream &operator<<(std::ostream &os, const Cont<T> &cont) {          \
+        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                           \
     }
+
+#define __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(Cont)                            \
+    template <class T1, class T2>                                              \
+    std::ostream &operator<<(std::ostream &os, const Cont<T1, T2> &cont) {     \
+        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                           \
+    }
+
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::deque)
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::forward_list)
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::list)
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::multiset)
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::set)
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::unordered_multiset)
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::unordered_set)
+__PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::vector)
+
+template <class T1, class T2>
+std::ostream &operator<<(std::ostream &os, const std::pair<T1, T2> &pair) {
+    os << "pair<" << pair.first << ',' << pair.second << '>';
     return os;
 }
 
-template <class ForwardIterator>
-std::ostream &display(const ForwardIterator begin, const ForwardIterator end,
-                      std::ostream &os = std::cout) {
-    bool first = true;
-    for (ForwardIterator it = begin; it != end; ++it) {
-        if (first) {
-            os << *it;
-            first = false;
-        } else {
-            os << ' ' << *it;
-        }
-    }
-    return os;
-}
+__PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::map)
+__PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::multimap)
+__PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::unordered_map)
+__PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::unordered_multimap)
+
 } // namespace playground
 
 #endif
