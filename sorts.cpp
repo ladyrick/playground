@@ -15,11 +15,6 @@ EXEC(sort_funcs.push_back(bubble_sort));
 EXEC(sort_funcs.push_back(g));
 EXEC(sort_funcs.push_back(h));
 
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-
 int main() {
     vector<int> arr = {5, 2, 3, 6, 4, 2, 6, 2, 1, 5};
     for (auto sortfunc : sort_funcs) {
