@@ -62,7 +62,14 @@ void *AutoFree::operator new(size_t size) {
     mem_freer.pool.push_back((AutoFree *)p);
     return p;
 }
+
+std::random_device rd;
+std::mt19937 gen(rd());
 } // namespace __
+
+int randint(int start, int end) {
+    return std::uniform_int_distribution<>(start, end)(__::gen);
+}
 
 std::string input() {
     std::string line;
@@ -127,7 +134,6 @@ __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::map)
 __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::multimap)
 __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::unordered_map)
 __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::unordered_multimap)
-
 } // namespace playground
 
 #endif

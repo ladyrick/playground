@@ -3,33 +3,67 @@
 using namespace std;
 using namespace playground;
 
-typedef void (*InPlaceSortFunc)(vector<int> &);
+const size_t TITLE_WIDTH = 15;
+const size_t RUN_TIMES = 10000;
 
-vector<InPlaceSortFunc> sort_funcs;
+struct SortFunc {
+    virtual string method() = 0;
+    virtual void operator()(vector<int> &) = 0;
+};
 
-void bubble_sort(vector<int> &v) {}
-void g(vector<int> &v) {}
-void h(vector<int> &v) {}
+vector<shared_ptr<SortFunc>> sort_funcs;
 
-EXEC(sort_funcs.push_back(bubble_sort));
-EXEC(sort_funcs.push_back(g));
-EXEC(sort_funcs.push_back(h));
+namespace insert_sort {
+struct Sort : SortFunc {
+    string method() { return "insert sort"; }
+    void operator()(vector<int> &v) {
+        for (int i = 1; i < v.size(); i++) {
+            int ii = i - 1;
+            while (ii >= 0 && v[ii] > v[ii + 1]) {
+                swap(v[ii], v[ii + 1]);
+                ii--;
+            }
+        }
+    }
+};
+EXEC(sort_funcs.push_back(make_shared<Sort>()));
+} // namespace insert_sort
+
+namespace bubble_sort {
+struct Sort : SortFunc {
+    string method() { return "bubble sort"; }
+    void operator()(vector<int> &v) {
+        for (int i = 0; i < v.size() - 1; i++) {
+            for (int j = i + 1; j < v.size(); j++) {
+                if (v[i] > v[j]) {
+                    swap(v[i], v[j]);
+                }
+            }
+        }
+    }
+};
+EXEC(sort_funcs.push_back(make_shared<Sort>()));
+} // namespace bubble_sort
 
 int main() {
-    vector<int> arr = {5, 2, 3, 6, 4, 2, 6, 2, 1, 5};
-    for (auto sortfunc : sort_funcs) {
-        vector<int> tmp_arr = arr;
+    vector<int> arr(40);
+    for (int i = 0; i < arr.size(); i++)
+        arr[i] = randint(0, arr.size());
+    cout << setw(TITLE_WIDTH) << "input"
+         << ": ";
+    cout << arr << endl;
+    for (auto p : sort_funcs) {
+        cout << setw(TITLE_WIDTH) << p->method() << ": ";
         auto start = chrono::high_resolution_clock::now();
-        sortfunc(tmp_arr);
+        vector<int> tmp_arr;
+        for (int i = 0; i < 10000; i++) {
+            tmp_arr = arr;
+            (*p)(tmp_arr);
+        }
         auto end = chrono::high_resolution_clock::now();
         cout << tmp_arr << " time used: "
              << chrono::duration_cast<chrono::milliseconds>(end - start).count()
              << "ms." << endl;
     }
-
-    map<int, vector<int>> m;
-    m[1] = vector<int>{1, 2, 3};
-    m[3] = vector<int>{4, 5, 6};
-    cout << m << endl;
     return 0;
 }
