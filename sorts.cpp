@@ -38,6 +38,30 @@ struct BubbleSort : SortBase {
 };
 EXEC(sort_funcs.push_back(make_shared<BubbleSort>()));
 
+struct QuickSort : SortBase {
+    string method() { return "quick sort"; }
+    void qsort(vector<int> &v, int start, int end) {
+        if (start >= end) {
+            return;
+        }
+        int pivot = v[end];
+        int partition = start;
+        for (int i = start; i <= end; i++) {
+            if (v[i] < pivot) {
+                if (i != partition) {
+                    swap(v[i], v[partition]);
+                }
+                partition++;
+            }
+        }
+        swap(v[end], v[partition]);
+        qsort(v, start, partition - 1);
+        qsort(v, partition + 1, end);
+    }
+    void sort(vector<int> &v) { qsort(v, 0, v.size() - 1); }
+};
+EXEC(sort_funcs.push_back(make_shared<QuickSort>()));
+
 int main() {
     vector<int> arr(1000);
     for (int i = 0; i < arr.size(); i++)
