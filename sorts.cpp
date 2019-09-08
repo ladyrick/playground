@@ -22,7 +22,7 @@ struct InsertSort : SortBase {
         }
     }
 };
-EXEC(sort_funcs.push_back(make_shared<InsertSort>()));
+// EXEC(sort_funcs.push_back(make_shared<InsertSort>()));
 
 struct BubbleSort : SortBase {
     string method() { return "bubble sort"; }
@@ -36,7 +36,7 @@ struct BubbleSort : SortBase {
         }
     }
 };
-EXEC(sort_funcs.push_back(make_shared<BubbleSort>()));
+// EXEC(sort_funcs.push_back(make_shared<BubbleSort>()));
 
 struct QuickSort : SortBase {
     string method() { return "quick sort"; }
@@ -62,8 +62,42 @@ struct QuickSort : SortBase {
 };
 EXEC(sort_funcs.push_back(make_shared<QuickSort>()));
 
+struct QuickSort_Sandwish : SortBase {
+    string method() { return "quick sort sandwish"; }
+    void qsort(vector<int> &v, int start, int end) {
+        if (start >= end) {
+            return;
+        }
+        int pivot = v[end];
+        int partition1 = start;
+        int partition2 = start;
+        for (int i = start; i <= end; i++) {
+            if (v[i] < pivot) {
+                if (i != partition2) {
+                    swap(v[i], v[partition2]);
+                }
+                if (partition2 != partition1) {
+                    swap(v[partition2], v[partition1]);
+                }
+                partition1++;
+                partition2++;
+            } else if (v[i] == pivot) {
+                if (i != partition2) {
+                    swap(v[i], v[partition2]);
+                }
+                partition2++;
+            }
+        }
+        // swap(v[end], v[partition]);
+        qsort(v, start, partition1 - 1);
+        qsort(v, partition2, end);
+    }
+    void sort(vector<int> &v) { qsort(v, 0, v.size() - 1); }
+};
+EXEC(sort_funcs.push_back(make_shared<QuickSort_Sandwish>()));
+
 int main() {
-    vector<int> arr(1000);
+    vector<int> arr(100000);
     for (int i = 0; i < arr.size(); i++)
         arr[i] = randint(0, arr.size());
     auto sorted_arr = arr;
