@@ -88,7 +88,6 @@ struct QuickSort_Sandwish : SortBase {
                 partition2++;
             }
         }
-        // swap(v[end], v[partition]);
         qsort(v, start, partition1 - 1);
         qsort(v, partition2, end);
     }
