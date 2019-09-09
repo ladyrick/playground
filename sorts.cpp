@@ -95,6 +95,34 @@ struct QuickSort_Sandwish : SortBase {
 };
 EXEC(sort_funcs.push_back(make_shared<QuickSort_Sandwish>()));
 
+struct MergeSort : SortBase {
+    string method() { return "merge sort"; }
+    void mergesort(vector<int> &v, int start, int end) {
+        if (end - start < 1) {
+            return;
+        }
+        int mid = (start + end) / 2;
+        mergesort(v, start, mid);
+        mergesort(v, mid + 1, end);
+
+        vector<int> front_part(v.begin() + start, v.begin() + mid + 1);
+
+        int front = 0;
+        int back = mid + 1;
+        for (int i = start; i <= end; i++) {
+            if (front > mid - start) {
+                v[i] = v[back++];
+            } else if (back > end || front_part[front] < v[back]) {
+                v[i] = front_part[front++];
+            } else {
+                v[i] = v[back++];
+            }
+        }
+    }
+    void sort(vector<int> &v) { mergesort(v, 0, v.size() - 1); }
+};
+EXEC(sort_funcs.push_back(make_shared<MergeSort>()));
+
 int main() {
     vector<int> arr(100000);
     for (int i = 0; i < arr.size(); i++)
