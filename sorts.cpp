@@ -7,8 +7,13 @@ struct SortBase {
     virtual string method() = 0;
     virtual void sort(vector<int> &) = 0;
 };
-
 vector<shared_ptr<SortBase>> sort_funcs;
+
+struct STLSort : SortBase {
+    string method() { return "STL sort"; };
+    void sort(vector<int> &v) { ::sort(v.begin(), v.end()); };
+};
+EXEC(sort_funcs.push_back(make_shared<STLSort>()));
 
 struct InsertSort : SortBase {
     string method() { return "insert sort"; }
@@ -61,6 +66,31 @@ struct QuickSort : SortBase {
     void sort(vector<int> &v) { qsort(v, 0, v.size() - 1); }
 };
 EXEC(sort_funcs.push_back(make_shared<QuickSort>()));
+
+struct QuickSort2 : SortBase {
+    string method() { return "quick sort v2"; }
+    void qsort(vector<int> &v, int start, int end) {
+        if (start >= end) {
+            return;
+        }
+        int pivot = v[end];
+        int l = start, r = end;
+        while (l < r) {
+            while (l < r && v[l] <= pivot) {
+                l++;
+            }
+            swap(v[l], v[r]);
+            while (l < r && v[r] >= pivot) {
+                r--;
+            }
+            swap(v[l], v[r]);
+        }
+        qsort(v, start, l - 1);
+        qsort(v, l + 1, end);
+    }
+    void sort(vector<int> &v) { qsort(v, 0, v.size() - 1); }
+};
+EXEC(sort_funcs.push_back(make_shared<QuickSort2>()));
 
 struct QuickSort_Sandwish : SortBase {
     string method() { return "quick sort sandwish"; }
@@ -123,42 +153,98 @@ struct MergeSort : SortBase {
 };
 EXEC(sort_funcs.push_back(make_shared<MergeSort>()));
 
-int main() {
-    vector<int> arr(100000);
-    for (int i = 0; i < arr.size(); i++)
-        arr[i] = randint(0, arr.size());
-    auto sorted_arr = arr;
-    sort(sorted_arr.begin(), sorted_arr.end());
+struct HeapSort : SortBase {
+    string method() { return "heap sort"; }
+    void adjust(vector<int> &v, int root, int end) {
+        int lc = root * 2 + 1;
+        int rc = lc + 1;
+        int largest = root;
+        if (lc <= end && v[lc] > v[largest]) {
+            largest = lc;
+        }
+        if (rc <= end && v[rc] > v[largest]) {
+            largest = rc;
+        }
+        if (largest != root) {
+            swap(v[largest], v[root]);
+            adjust(v, largest, end);
+        }
+    }
+    void sort(vector<int> &v) {
+        for (int i = v.size() / 2; i >= 0; i--) {
+            adjust(v, i, v.size() - 1);
+        }
+        for (int i = v.size() - 1; i > 0; i--) {
+            swap(v[0], v[i]);
+            adjust(v, 0, i - 1);
+        }
+    }
+};
+EXEC(sort_funcs.push_back(make_shared<HeapSort>()));
 
+int main() {
     size_t title_width = 0;
     for (auto p : sort_funcs) {
         title_width = max(title_width, p->method().size());
     }
-    for (auto p : sort_funcs) {
-        cout << setw(title_width) << p->method() << ": ";
-        size_t microseconds = 0;
-        vector<int> tmp_arr;
-        for (int i = 0; i < 10; i++) {
-            tmp_arr = arr;
-            auto start = chrono::high_resolution_clock::now();
-            p->sort(tmp_arr);
-            auto end = chrono::high_resolution_clock::now();
-            microseconds +=
-                chrono::duration_cast<chrono::microseconds>(end - start)
-                    .count();
-        }
-        bool correct = true;
-        for (int i = 0; i < tmp_arr.size(); i++) {
-            if (tmp_arr[i] != sorted_arr[i]) {
-                correct = false;
-                break;
+
+    const size_t array_size = 100000;
+
+    vector<tuple<string, shared_ptr<vector<int>>, shared_ptr<vector<int>>>> testbenchs;
+
+    auto normal_arr = make_shared<vector<int>>(array_size);
+    for (int i = 0; i < array_size; i++)
+        (*normal_arr)[i] = randint(0, array_size);
+    auto sorted_normal_arr = make_shared<vector<int>>(*normal_arr);
+    sort(sorted_normal_arr->begin(), sorted_normal_arr->end());
+    testbenchs.push_back({"normal", normal_arr, sorted_normal_arr});
+
+    auto many_dup_arr = make_shared<vector<int>>(array_size);
+    for (int i = 0; i < array_size; i++)
+        (*many_dup_arr)[i] = randint(0, array_size / 100);
+    auto sorted_many_dup_arr = make_shared<vector<int>>(*many_dup_arr);
+    sort(sorted_many_dup_arr->begin(), sorted_many_dup_arr->end());
+    testbenchs.push_back({"many duplicated elements", many_dup_arr, sorted_many_dup_arr});
+
+    auto almost_sorted_arr = make_shared<vector<int>>(array_size);
+    for (int i = 0; i < array_size; i++)
+        (*almost_sorted_arr)[i] = randint(0, array_size);
+    sort(almost_sorted_arr->begin(), almost_sorted_arr->end());
+    auto sorted_almost_sorted_arr = make_shared<vector<int>>(*almost_sorted_arr);
+    for (int i = 0; i < 50; i++) {
+        int j = randint(0, array_size);
+        int k = randint(0, array_size);
+        swap((*almost_sorted_arr)[j], (*almost_sorted_arr)[k]);
+    }
+    testbenchs.push_back({"almost sorted", almost_sorted_arr, sorted_almost_sorted_arr});
+
+    for (auto tb : testbenchs) {
+        cout << "========== " << get<0>(tb) << " ==========" << endl << endl;
+        for (auto p : sort_funcs) {
+            cout << setw(title_width) << p->method() << ": ";
+            size_t microseconds = 0;
+            vector<int> tmp_arr;
+            for (int i = 0; i < 10; i++) {
+                tmp_arr = *get<1>(tb);
+                auto start = chrono::high_resolution_clock::now();
+                p->sort(tmp_arr);
+                auto end = chrono::high_resolution_clock::now();
+                microseconds += chrono::duration_cast<chrono::microseconds>(end - start).count();
+            }
+            bool correct = true;
+            for (int i = 0; i < tmp_arr.size(); i++) {
+                if (tmp_arr[i] != (*get<2>(tb))[i]) {
+                    correct = false;
+                    break;
+                }
+            }
+            if (correct) {
+                cout << microseconds / 1000 << "ms." << endl;
+            } else {
+                cout << "wrong answer." << endl;
             }
         }
-        if (correct) {
-            cout << microseconds / 1000 << "ms." << endl;
-        } else {
-            cout << "wrong answer." << endl;
-        }
+        cout << endl;
     }
     return 0;
 }
