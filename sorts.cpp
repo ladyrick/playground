@@ -6,6 +6,20 @@ using namespace playground;
 struct SortBase {
     virtual string method() = 0;
     virtual void sort(vector<int> &) = 0;
+    int midPivot(const vector<int> &v, int start, int end) {
+        int mid = (start + end) / 2;
+        pair<int, int> tmp[] = {{start, v[start]}, {mid, v[mid]}, {end, v[end]}};
+        if (tmp[1].second < tmp[0].second) {
+            swap(tmp[0], tmp[1]);
+        }
+        if (tmp[2].second < tmp[1].second) {
+            swap(tmp[1], tmp[2]);
+            if (tmp[1].second < tmp[0].second) {
+                swap(tmp[0], tmp[1]);
+            }
+        }
+        return tmp[1].first;
+    }
 };
 vector<shared_ptr<SortBase>> sort_funcs;
 
@@ -49,6 +63,10 @@ struct QuickSort : SortBase {
         if (start >= end) {
             return;
         }
+        int pivot_ind = midPivot(v, start, end);
+        if (pivot_ind != end) {
+            swap(v[pivot_ind], v[end]);
+        }
         int pivot = v[end];
         int partition = start;
         for (int i = start; i <= end; i++) {
@@ -73,21 +91,27 @@ struct QuickSort2 : SortBase {
         if (start >= end) {
             return;
         }
+        int pivot_ind = midPivot(v, start, end);
+        if (pivot_ind != end) {
+            swap(v[pivot_ind], v[end]);
+        }
         int pivot = v[end];
         int l = start, r = end;
         while (l < r) {
             while (l < r && v[l] <= pivot) {
                 l++;
             }
-            swap(v[l], v[r]);
             while (l < r && v[r] >= pivot) {
                 r--;
             }
-            swap(v[l], v[r]);
+            if (l != r)
+                swap(v[l], v[r]);
         }
+        swap(v[l], v[end]);
         qsort(v, start, l - 1);
         qsort(v, l + 1, end);
     }
+    // 3,5,2,1,3,2,7,6,6,8,5
     void sort(vector<int> &v) { qsort(v, 0, v.size() - 1); }
 };
 EXEC(sort_funcs.push_back(make_shared<QuickSort2>()));
@@ -97,6 +121,10 @@ struct QuickSort_Sandwish : SortBase {
     void qsort(vector<int> &v, int start, int end) {
         if (start >= end) {
             return;
+        }
+        int pivot_ind = midPivot(v, start, end);
+        if (pivot_ind != end) {
+            swap(v[pivot_ind], v[end]);
         }
         int pivot = v[end];
         int partition1 = start;
