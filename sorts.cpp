@@ -111,7 +111,6 @@ struct QuickSort2 : SortBase {
         qsort(v, start, l - 1);
         qsort(v, l + 1, end);
     }
-    // 3,5,2,1,3,2,7,6,6,8,5
     void sort(vector<int> &v) { qsort(v, 0, v.size() - 1); }
 };
 EXEC(sort_funcs.push_back(make_shared<QuickSort2>()));
@@ -218,7 +217,12 @@ int main() {
 
     const size_t array_size = 100000;
 
-    vector<tuple<string, shared_ptr<vector<int>>, shared_ptr<vector<int>>>> testbenchs;
+    struct TestBench {
+        string type;
+        shared_ptr<vector<int>> arr;
+        shared_ptr<vector<int>> sorted_arr;
+    };
+    vector<TestBench> testbenchs;
 
     auto normal_arr = make_shared<vector<int>>(array_size);
     for (int i = 0; i < array_size; i++)
@@ -247,13 +251,13 @@ int main() {
     testbenchs.push_back({"almost sorted", almost_sorted_arr, sorted_almost_sorted_arr});
 
     for (auto tb : testbenchs) {
-        cout << "========== " << get<0>(tb) << " ==========" << endl << endl;
+        cout << "========== " << tb.type << " ==========" << endl << endl;
         for (auto p : sort_funcs) {
             cout << setw(title_width) << p->method() << ": ";
             size_t microseconds = 0;
             vector<int> tmp_arr;
             for (int i = 0; i < 10; i++) {
-                tmp_arr = *get<1>(tb);
+                tmp_arr = *tb.arr;
                 auto start = chrono::high_resolution_clock::now();
                 p->sort(tmp_arr);
                 auto end = chrono::high_resolution_clock::now();
@@ -261,7 +265,7 @@ int main() {
             }
             bool correct = true;
             for (int i = 0; i < tmp_arr.size(); i++) {
-                if (tmp_arr[i] != (*get<2>(tb))[i]) {
+                if (tmp_arr[i] != (*tb.sorted_arr)[i]) {
                     correct = false;
                     break;
                 }
