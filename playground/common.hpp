@@ -124,7 +124,7 @@ __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::vector)
 
 template <class T1, class T2>
 std::ostream &operator<<(std::ostream &os, const std::pair<T1, T2> &pair) {
-    os << "pair<" << pair.first << ',' << pair.second << '>';
+    os << "<" << pair.first << ',' << pair.second << '>';
     return os;
 }
 
