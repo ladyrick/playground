@@ -27,14 +27,13 @@
 #ifndef __PLAYGROUND_COMMON__
 #define __PLAYGROUND_COMMON__
 
-#define __EXEC_HELPER2__(expression, counter)                                  \
-    namespace __exec_helper_namespace_##counter {                              \
-        struct __exec_helper_class__ {                                         \
-            __exec_helper_class__() { expression; }                            \
-        } __executor__;                                                        \
+#define __EXEC_HELPER2__(expression, counter)                                                      \
+    namespace __exec_helper_namespace_##counter {                                                  \
+        struct __exec_helper_class__ {                                                             \
+            __exec_helper_class__() { expression; }                                                \
+        } __executor__;                                                                            \
     }
-#define __EXEC_HELPER1__(expression, counter)                                  \
-    __EXEC_HELPER2__(expression, counter)
+#define __EXEC_HELPER1__(expression, counter) __EXEC_HELPER2__(expression, counter)
 
 // used to exec expression before entry main().
 #define EXEC(expression) __EXEC_HELPER1__(expression, __COUNTER__)
@@ -67,9 +66,7 @@ std::random_device rd;
 std::mt19937 gen(rd());
 } // namespace __
 
-int randint(int start, int end) {
-    return std::uniform_int_distribution<>(start, end)(__::gen);
-}
+int randint(int start, int end) { return std::uniform_int_distribution<>(start, end)(__::gen); }
 
 std::string input() {
     std::string line;
@@ -77,8 +74,7 @@ std::string input() {
     return line;
 }
 
-std::vector<std::string> split(const std::string &str,
-                               const std::string &delim) {
+std::vector<std::string> split(const std::string &str, const std::string &delim) {
     int begin = 0;
     std::vector<std::string> result;
     int npos;
@@ -89,30 +85,32 @@ std::vector<std::string> split(const std::string &str,
     result.emplace_back(str.substr(begin, str.length() - begin));
     return result;
 }
+} // namespace playground
 
-#define __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                           \
-    bool first = true;                                                         \
-    for (const auto &elem : cont) {                                            \
-        if (first) {                                                           \
-            os << '[' << elem;                                                 \
-            first = false;                                                     \
-        } else {                                                               \
-            os << ',' << elem;                                                 \
-        }                                                                      \
-    }                                                                          \
-    os << ']';                                                                 \
+// ostream for all containers.
+#define __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                                               \
+    bool first = true;                                                                             \
+    for (const auto &elem : cont) {                                                                \
+        if (first) {                                                                               \
+            os << '[' << elem;                                                                     \
+            first = false;                                                                         \
+        } else {                                                                                   \
+            os << ',' << elem;                                                                     \
+        }                                                                                          \
+    }                                                                                              \
+    os << ']';                                                                                     \
     return os;
 
-#define __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(Cont)                            \
-    template <class T>                                                         \
-    std::ostream &operator<<(std::ostream &os, const Cont<T> &cont) {          \
-        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                           \
+#define __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(Cont)                                                \
+    template <class T>                                                                             \
+    std::ostream &operator<<(std::ostream &os, const Cont<T> &cont) {                              \
+        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                                               \
     }
 
-#define __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(Cont)                            \
-    template <class T1, class T2>                                              \
-    std::ostream &operator<<(std::ostream &os, const Cont<T1, T2> &cont) {     \
-        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                           \
+#define __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(Cont)                                                \
+    template <class T1, class T2>                                                                  \
+    std::ostream &operator<<(std::ostream &os, const Cont<T1, T2> &cont) {                         \
+        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                                               \
     }
 
 __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::deque)
@@ -134,6 +132,5 @@ __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::map)
 __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::multimap)
 __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::unordered_map)
 __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(std::unordered_multimap)
-} // namespace playground
 
 #endif

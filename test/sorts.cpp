@@ -1,4 +1,4 @@
-#include "playground/common.hpp"
+#include "../playground/common.hpp"
 
 using namespace std;
 using namespace playground;
