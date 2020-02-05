@@ -89,10 +89,11 @@ std::vector<std::string> split(const std::string &str, const std::string &delim)
 
 // ostream for all containers.
 #define __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                                               \
+    os << '[';                                                                                     \
     bool first = true;                                                                             \
     for (const auto &elem : cont) {                                                                \
         if (first) {                                                                               \
-            os << '[' << elem;                                                                     \
+            os << elem;                                                                            \
             first = false;                                                                         \
         } else {                                                                                   \
             os << ',' << elem;                                                                     \
