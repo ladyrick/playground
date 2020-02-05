@@ -27,11 +27,11 @@
 #ifndef __PLAYGROUND_COMMON__
 #define __PLAYGROUND_COMMON__
 
-#define __EXEC_HELPER2__(expression, counter)                                                      \
-    namespace __exec_helper_namespace_##counter {                                                  \
-        struct __exec_helper_class__ {                                                             \
-            __exec_helper_class__() { expression; }                                                \
-        } __executor__;                                                                            \
+#define __EXEC_HELPER2__(expression, counter)       \
+    namespace __exec_helper_namespace_##counter {   \
+        struct __exec_helper_class__ {              \
+            __exec_helper_class__() { expression; } \
+        } __executor__;                             \
     }
 #define __EXEC_HELPER1__(expression, counter) __EXEC_HELPER2__(expression, counter)
 
@@ -85,33 +85,140 @@ std::vector<std::string> split(const std::string &str, const std::string &delim)
     result.emplace_back(str.substr(begin, str.length() - begin));
     return result;
 }
+
+class Color {
+  public:
+    enum class F {
+        Default = 39,
+        Black = 30,
+        Red = 31,
+        Green = 32,
+        Yellow = 33,
+        Blue = 34,
+        Magenta = 35,
+        Cyan = 36,
+        LightGray = 37,
+        DarkGray = 90,
+        LightRed = 91,
+        LightGreen = 92,
+        LightYellow = 93,
+        LightBlue = 94,
+        LightMagenta = 95,
+        LightCyan = 96,
+        White = 97,
+    };
+    enum class B {
+        Default = 49,
+        Black = 40,
+        Red = 41,
+        Green = 42,
+        Yellow = 43,
+        Blue = 44,
+        Magenta = 45,
+        Cyan = 46,
+        LightGray = 47,
+        DarkGray = 100,
+        LightRed = 101,
+        LightGreen = 102,
+        LightYellow = 103,
+        LightBlue = 104,
+        LightMagenta = 105,
+        LightCyan = 106,
+        White = 107,
+    };
+    enum class S {
+        Default = 0,
+        Bold = 1,
+        Dim = 2,
+        Underlined = 4,
+        Blink = 5,
+        Reverse = 7,
+        Hidden = 8,
+    };
+    const static Color Clear;
+    Color &c_256(int foreground = -1, int background = -1) {
+        if (foreground >= 0 && foreground <= 256) {
+            this->foreground_code = -foreground;
+        }
+        if (background >= 0 && background <= 256) {
+            this->background_code = -background;
+        }
+        return *this;
+    }
+    Color &fore(F foreground) {
+        this->foreground_code = int(foreground);
+        return *this;
+    }
+    Color &back(B background) {
+        this->background_code = int(background);
+        return *this;
+    }
+    Color &style(S style) {
+        this->style_code = int(style);
+        return *this;
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const Color &color) {
+        if (os.rdbuf() != std::cout.rdbuf()) {
+            return os;
+        }
+        std::ostringstream oss;
+        oss << "\e[0m";
+        if (color.foreground_code != int(Color::F::Default)) {
+            if (color.foreground_code > 0) {
+                oss << "\e[" << color.foreground_code << 'm';
+            } else {
+                oss << "\e[38;5;" << -color.foreground_code << 'm';
+            }
+        }
+        if (color.background_code != int(Color::B::Default)) {
+            if (color.background_code > 0) {
+                oss << "\e[" << color.background_code << 'm';
+            } else {
+                oss << "\e[48;5;" << -color.background_code << 'm';
+            }
+        }
+        if (color.style_code != int(Color::S::Default)) {
+            oss << "\e[" << color.style_code << 'm';
+        }
+        os << oss.str();
+        return os;
+    }
+
+  private:
+    int foreground_code = int(F::Default);
+    int background_code = int(B::Default);
+    int style_code = int(S::Default);
+};
+
+const Color Color::Clear = Color();
 } // namespace playground
 
 // ostream for all containers.
-#define __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                                               \
-    os << '[';                                                                                     \
-    bool first = true;                                                                             \
-    for (const auto &elem : cont) {                                                                \
-        if (first) {                                                                               \
-            os << elem;                                                                            \
-            first = false;                                                                         \
-        } else {                                                                                   \
-            os << ',' << elem;                                                                     \
-        }                                                                                          \
-    }                                                                                              \
-    os << ']';                                                                                     \
+#define __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont) \
+    os << '[';                                       \
+    bool first = true;                               \
+    for (const auto &elem : cont) {                  \
+        if (first) {                                 \
+            os << elem;                              \
+            first = false;                           \
+        } else {                                     \
+            os << ',' << elem;                       \
+        }                                            \
+    }                                                \
+    os << ']';                                       \
     return os;
 
-#define __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(Cont)                                                \
-    template <class T>                                                                             \
-    std::ostream &operator<<(std::ostream &os, const Cont<T> &cont) {                              \
-        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                                               \
+#define __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(Cont)                   \
+    template <class T>                                                \
+    std::ostream &operator<<(std::ostream &os, const Cont<T> &cont) { \
+        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                  \
     }
 
-#define __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(Cont)                                                \
-    template <class T1, class T2>                                                                  \
-    std::ostream &operator<<(std::ostream &os, const Cont<T1, T2> &cont) {                         \
-        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                                               \
+#define __PLAYGROUND_PARTIAL_SPECIALIZE_TWO__(Cont)                        \
+    template <class T1, class T2>                                          \
+    std::ostream &operator<<(std::ostream &os, const Cont<T1, T2> &cont) { \
+        __PLAYGROUND_OPERATOR_LEFT_SHIFT__(os, cont)                       \
     }
 
 __PLAYGROUND_PARTIAL_SPECIALIZE_ONE__(std::deque)
