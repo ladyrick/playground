@@ -209,6 +209,46 @@ class Color {
 };
 
 const Color Color::Reset(true);
+
+class Timer {
+  public:
+    void start() {
+        started = true;
+        stoped = false;
+        time_point_start = std::chrono::high_resolution_clock::now();
+    }
+
+    void stop() {
+        stoped = true;
+        time_point_stop = std::chrono::high_resolution_clock::now();
+    }
+
+    uint64_t cast_milliseconds() {
+        if (!started || !stoped) {
+            return -1;
+        }
+        return std::chrono::duration_cast<std::chrono::milliseconds>(time_point_stop - time_point_start).count();
+    }
+
+    uint64_t cast_microseconds() {
+        if (!started || !stoped) {
+            return -1;
+        }
+        return std::chrono::duration_cast<std::chrono::microseconds>(time_point_stop - time_point_start).count();
+    }
+
+    uint64_t cast_nanoseconds() {
+        if (!started || !stoped) {
+            return -1;
+        }
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(time_point_stop - time_point_start).count();
+    }
+
+  private:
+    std::chrono::high_resolution_clock::time_point time_point_start, time_point_stop;
+    bool started = false, stoped = false;
+};
+Timer timer;
 } // namespace playground
 
 // ostream for all containers.
