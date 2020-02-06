@@ -90,9 +90,11 @@ int main() {
         auto a1 = method1(array, 0, array.size());
         auto a2 = method2(array, 0, array.size());
         auto a3 = method3(array, 0, array.size());
+        cout << Color().style(Color::S::Bold);
         cout << Color().fore(Color::F::Magenta) << array << endl;
         cout << Color().fore(Color::F::Blue) << a1 << endl;
         cout << Color().fore(Color::F::Green) << a2 << endl;
         cout << Color().fore(Color::F::Cyan) << a3 << endl;
+        cout << Color::Reset;
     }
 }

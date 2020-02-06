@@ -89,6 +89,7 @@ std::vector<std::string> split(const std::string &str, const std::string &delim)
 class Color {
   public:
     enum class F {
+        NoChange = 1,
         Default = 39,
         Black = 30,
         Red = 31,
@@ -108,6 +109,7 @@ class Color {
         White = 97,
     };
     enum class B {
+        NoChange = 1,
         Default = 49,
         Black = 40,
         Red = 41,
@@ -127,15 +129,27 @@ class Color {
         White = 107,
     };
     enum class S {
-        Default = 0,
+        NoChange = -1,
         Bold = 1,
         Dim = 2,
-        Underlined = 4,
+        Italic = 3,
+        Underline = 4,
         Blink = 5,
+        FastBlink = 6,
         Reverse = 7,
         Hidden = 8,
+        Delete = 9,
+        NoBold = 21,
+        NoDim = 22,
+        NoItalic = 23,
+        NoUnderline = 24,
+        NoBlink = 25,
+        NoReverse = 27,
+        NoHidden = 28,
+        NoDelete = 29,
     };
-    const static Color Clear;
+    Color(bool reset = false) : style_code(reset ? 0 : int(S::NoChange)) {}
+    const static Color Reset;
     Color &c_256(int foreground = -1, int background = -1) {
         if (foreground >= 0 && foreground <= 256) {
             this->foreground_code = -foreground;
@@ -162,23 +176,26 @@ class Color {
         if (os.rdbuf() != std::cout.rdbuf()) {
             return os;
         }
+        if (color.style_code == 0) {
+            os << "\e[0m";
+            return os;
+        }
         std::ostringstream oss;
-        oss << "\e[0m";
-        if (color.foreground_code != int(Color::F::Default)) {
+        if (color.foreground_code != int(Color::F::NoChange)) {
             if (color.foreground_code > 0) {
                 oss << "\e[" << color.foreground_code << 'm';
             } else {
                 oss << "\e[38;5;" << -color.foreground_code << 'm';
             }
         }
-        if (color.background_code != int(Color::B::Default)) {
+        if (color.background_code != int(Color::B::NoChange)) {
             if (color.background_code > 0) {
                 oss << "\e[" << color.background_code << 'm';
             } else {
                 oss << "\e[48;5;" << -color.background_code << 'm';
             }
         }
-        if (color.style_code != int(Color::S::Default)) {
+        if (color.style_code != int(Color::S::NoChange)) {
             oss << "\e[" << color.style_code << 'm';
         }
         os << oss.str();
@@ -186,12 +203,12 @@ class Color {
     }
 
   private:
-    int foreground_code = int(F::Default);
-    int background_code = int(B::Default);
-    int style_code = int(S::Default);
+    int foreground_code = int(F::NoChange);
+    int background_code = int(B::NoChange);
+    int style_code = int(S::NoChange);
 };
 
-const Color Color::Clear = Color();
+const Color Color::Reset(true);
 } // namespace playground
 
 // ostream for all containers.
